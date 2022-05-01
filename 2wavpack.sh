@@ -197,7 +197,7 @@ wait
 for file in "${lst_audio_src_pass[@]}"; do
 	if [[ "${file##*.}" = "ape" ]]; then
 		(
-		mac "$file" auto -d &>/dev/null
+		mac "$file" "${file%.*}.wav" -d &>/dev/null
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
 			wait -n
