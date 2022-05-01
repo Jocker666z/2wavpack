@@ -723,10 +723,7 @@ fi
 if [[ "$command" = "metaflac" ]]; then
 	command="$command (flac package)"
 fi
-if [[ "$command" = "wvtag" ]] || [[ "$command" = "wvunpack" ]]; then
-	command="$command (wavpack package)"
-fi
-if [[ "$command" = "wvunpack" ]] || [[ "$command" = "wvunpack" ]]; then
+if [[ "$command" = "wvtag" ]] || [[ "$command" = "wavpack" ]]; then
 	command="$command (wavpack package)"
 fi
 }
