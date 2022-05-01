@@ -490,9 +490,9 @@ for file in "${lst_audio_wav_decoded[@]}"; do
 	# Compress ape
 	(
 	if [[ "$verbose" = "1" ]]; then
-		wavpack "$wavpack_compress_arg" "$file"
+		wavpack -y "$wavpack_compress_arg" "$file"
 	else
-		wavpack "$wavpack_compress_arg" "$file" &>/dev/null
+		wavpack -y "$wavpack_compress_arg" "$file" &>/dev/null
 	fi
 	) &
 	if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
@@ -796,7 +796,7 @@ flac_fix_arg="--totally-silent -f --verify --decode-through-errors"
 flac_decode_arg="--totally-silent -f -d"
 # WAVPACK
 wavpack_version=$(wavpack --version | head -1)
-wavpack_compress_arg="-hhx6 -y"
+wavpack_compress_arg="-hhx6"
 # Tag whitelist according with:
 # https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
 # Ommit: EncodedBy, EncoderSettings = special case for rewrite this
