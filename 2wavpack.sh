@@ -699,19 +699,21 @@ fi
 }
 # Remove source files
 remove_source_files() {
-if [ "${#lst_audio_wv_compressed[@]}" -gt 0 ] ; then
-	read -r -p "Remove source files? [y/N]:" qarm
-	case $qarm in
-		"Y"|"y")
-			# Remove source files
-			for file in "${lst_audio_src_pass[@]}"; do
-				rm -f "$file" 2>/dev/null
-			done
-		;;
-		*)
-			source_not_removed="1"
-		;;
-	esac
+if [[ "$re_wavpack" != "1" ]]; then
+	if [ "${#lst_audio_wv_compressed[@]}" -gt 0 ] ; then
+		read -r -p "Remove source files? [y/N]:" qarm
+		case $qarm in
+			"Y"|"y")
+				# Remove source files
+				for file in "${lst_audio_src_pass[@]}"; do
+					rm -f "$file" 2>/dev/null
+				done
+			;;
+			*)
+				source_not_removed="1"
+			;;
+		esac
+	fi
 fi
 }
 # Remove target files
