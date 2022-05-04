@@ -291,78 +291,96 @@ for file in "${lst_audio_wv_compressed[@]}"; do
 	tag_name=()
 	tag_label=()
 
-	# FLAC
-	if [[ -s "${file%.*}.flac" ]]; then
-		# Source file tags array
-		mapfile -t source_tag < <( metaflac "${file%.*}.flac" --export-tags-to=- )
-		# Try to extract cover, if no cover in directory
-		if [[ ! -e "${file%/*}"/cover.jpg ]] \
-		&& [[ ! -e "${file%/*}"/cover.png ]]; then
-			cover_test=$(metaflac --list "${file%.*}.flac" \
-							| grep -A 8 METADATA 2>/dev/null \
-							| grep -A 7 -B 1 PICTURE 2>/dev/null)
-			if [[ -n "$cover_test" ]]; then
-				# Image type
-				cover_image_type=$(echo "$cover_test" | grep "MIME type" \
-					| awk -F " " '{print $NF}' | awk -F "/" '{print $NF}'\
-					| head -1)
-				if [[ "$cover_image_type" = "png" ]]; then
-					cover_ext="png"
-				elif [[ "$cover_image_type" = "jpeg" ]]; then
-					cover_ext="jpg"
-				fi
-				metaflac "${file%.*}.flac" \
-					--export-picture-to="${file%/*}"/cover."$cover_ext"
-			fi
+	# WAVPACK
+	if [[ "$re_wavpack" = "1" ]]; then
+		if [[ -s "${file%.*}.wv" ]]; then
+			# Source file tags array
+			mapfile -t source_tag_temp < <( wvtag -q -l "${file%.*}.wv" \
+										| grep -v -e '^[[:space:]]*$' \
+										| tail -n +2 | sort )
+			# Clean array
+			mapfile -t source_tag_temp1 < <( printf '%s\n' "${source_tag_temp[@]}" \
+											| awk -F ":" '{print $1}' )
+			mapfile -t source_tag_temp2 < <( printf '%s\n' "${source_tag_temp[@]}" \
+											| cut -f2- -d' ' | sed 's/^ *//' )
+			for i in "${!source_tag_temp[@]}"; do
+				source_tag+=( "${source_tag_temp1[$i]}=${source_tag_temp2[$i]}" )
+			done
 		fi
-
-	# APE
-	elif [[ -s "${file%.*}.ape" ]]; then
-		# Source file tags array
-		mapfile -t source_tag < <( ffprobe -v error -show_entries stream_tags:format_tags \
-									-of default=noprint_wrappers=1 "${file%.*}.ape" )
-		# Clean array
-		for i in "${!source_tag[@]}"; do
-			source_tag[$i]="${source_tag[$i]//TAG:/}"
-		done
-		# Try to extract cover, if no cover in directory
-		if [[ ! -e "${file%/*}"/cover.jpg ]] \
-		&& [[ ! -e "${file%/*}"/cover.png ]]; then
-			cover_test=$(ffprobe -v error -select_streams v:0 \
-						-show_entries stream=codec_name -of csv=s=x:p=0 "${file%.*}.ape")
-			if [[ -n "$cover_test" ]]; then
-				if [[ "$cover_test" = "png" ]]; then
-					cover_ext="png"
-				elif [[ "$cover_test" = *"jpeg"* ]]; then
-					cover_ext="jpg"
+	else
+		# FLAC
+		if [[ -s "${file%.*}.flac" ]]; then
+			# Source file tags array
+			mapfile -t source_tag < <( metaflac "${file%.*}.flac" --export-tags-to=- )
+			# Try to extract cover, if no cover in directory
+			if [[ ! -e "${file%/*}"/cover.jpg ]] \
+			&& [[ ! -e "${file%/*}"/cover.png ]]; then
+				cover_test=$(metaflac --list "${file%.*}.flac" \
+								| grep -A 8 METADATA 2>/dev/null \
+								| grep -A 7 -B 1 PICTURE 2>/dev/null)
+				if [[ -n "$cover_test" ]]; then
+					# Image type
+					cover_image_type=$(echo "$cover_test" | grep "MIME type" \
+						| awk -F " " '{print $NF}' | awk -F "/" '{print $NF}'\
+						| head -1)
+					if [[ "$cover_image_type" = "png" ]]; then
+						cover_ext="png"
+					elif [[ "$cover_image_type" = "jpeg" ]]; then
+						cover_ext="jpg"
+					fi
+					metaflac "${file%.*}.flac" \
+						--export-picture-to="${file%/*}"/cover."$cover_ext"
 				fi
-				ffmpeg $ffmpeg_log_lvl -n -i "${file%.*}.ape" \
-					"${file%/*}"/cover."$cover_ext" 2>/dev/null
 			fi
-		fi
 
-	# ALAC
-	elif [[ -s "${file%.*}.m4a" ]]; then
-		# Source file tags array
-		mapfile -t source_tag < <( ffprobe -v error -show_entries stream_tags:format_tags \
-									-of default=noprint_wrappers=1 "${file%.*}.m4a" )
-		# Clean array
-		for i in "${!source_tag[@]}"; do
-			source_tag[$i]="${source_tag[$i]//TAG:/}"
-		done
-		# Try to extract cover, if no cover in directory
-		if [[ ! -e "${file%/*}"/cover.jpg ]] \
-		&& [[ ! -e "${file%/*}"/cover.png ]]; then
-			cover_test=$(ffprobe -v error -select_streams v:0 \
-						-show_entries stream=codec_name -of csv=s=x:p=0 "${file%.*}.m4a")
-			if [[ -n "$cover_test" ]]; then
-				if [[ "$cover_test" = "png" ]]; then
-					cover_ext="png"
-				elif [[ "$cover_test" = *"jpeg"* ]]; then
-					cover_ext="jpg"
+		# APE
+		elif [[ -s "${file%.*}.ape" ]]; then
+			# Source file tags array
+			mapfile -t source_tag < <( ffprobe -v error -show_entries stream_tags:format_tags \
+										-of default=noprint_wrappers=1 "${file%.*}.ape" )
+			# Clean array
+			for i in "${!source_tag[@]}"; do
+				source_tag[$i]="${source_tag[$i]//TAG:/}"
+			done
+			# Try to extract cover, if no cover in directory
+			if [[ ! -e "${file%/*}"/cover.jpg ]] \
+			&& [[ ! -e "${file%/*}"/cover.png ]]; then
+				cover_test=$(ffprobe -v error -select_streams v:0 \
+							-show_entries stream=codec_name -of csv=s=x:p=0 "${file%.*}.ape")
+				if [[ -n "$cover_test" ]]; then
+					if [[ "$cover_test" = "png" ]]; then
+						cover_ext="png"
+					elif [[ "$cover_test" = *"jpeg"* ]]; then
+						cover_ext="jpg"
+					fi
+					ffmpeg $ffmpeg_log_lvl -n -i "${file%.*}.ape" \
+						"${file%/*}"/cover."$cover_ext" 2>/dev/null
 				fi
-				ffmpeg $ffmpeg_log_lvl -n -i "${file%.*}.m4a" \
-					"${file%/*}"/cover."$cover_ext" 2>/dev/null
+			fi
+
+		# ALAC
+		elif [[ -s "${file%.*}.m4a" ]]; then
+			# Source file tags array
+			mapfile -t source_tag < <( ffprobe -v error -show_entries stream_tags:format_tags \
+										-of default=noprint_wrappers=1 "${file%.*}.m4a" )
+			# Clean array
+			for i in "${!source_tag[@]}"; do
+				source_tag[$i]="${source_tag[$i]//TAG:/}"
+			done
+			# Try to extract cover, if no cover in directory
+			if [[ ! -e "${file%/*}"/cover.jpg ]] \
+			&& [[ ! -e "${file%/*}"/cover.png ]]; then
+				cover_test=$(ffprobe -v error -select_streams v:0 \
+							-show_entries stream=codec_name -of csv=s=x:p=0 "${file%.*}.m4a")
+				if [[ -n "$cover_test" ]]; then
+					if [[ "$cover_test" = "png" ]]; then
+						cover_ext="png"
+					elif [[ "$cover_test" = *"jpeg"* ]]; then
+						cover_ext="jpg"
+					fi
+					ffmpeg $ffmpeg_log_lvl -n -i "${file%.*}.m4a" \
+						"${file%/*}"/cover."$cover_ext" 2>/dev/null
+				fi
 			fi
 		fi
 	fi
