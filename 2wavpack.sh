@@ -19,52 +19,58 @@
 
 # Search & populate array with source files
 search_source_files() {
-mapfile -t lst_audio_src < <(find "$PWD" -maxdepth 3 -type f -regextype posix-egrep \
-								-iregex '.*\.('$input_ext')$' 2>/dev/null | sort)
+if [[ "$re_wavpack" = "1" ]];then
+	mapfile -t lst_audio_src < <(find "$PWD" -maxdepth 3 -type f -regextype posix-egrep \
+									-iregex '.*\.('wv')$' 2>/dev/null | sort)
+else
+	mapfile -t lst_audio_src < <(find "$PWD" -maxdepth 3 -type f -regextype posix-egrep \
+									-iregex '.*\.('$input_ext')$' 2>/dev/null | sort)
 
-# Keep only ALAC if arg --alac_only
-if [[ "${alac_only}" = "1" ]]; then
-	for i in "${!lst_audio_src[@]}"; do
-		if [[ "${lst_audio_src[i]##*.}" != "m4a" ]]; then
-				unset "lst_audio_src[$i]"
-		fi
-	done
-fi
-# Keep only FLAC if arg --flac_only
-if [[ "${flac_only}" = "1" ]]; then
-	for i in "${!lst_audio_src[@]}"; do
-		if [[ "${lst_audio_src[i]##*.}" != "flac" ]]; then
-				unset "lst_audio_src[$i]"
-		fi
-	done
-fi
-# Keep only WAV if arg --wav_only
-if [[ "${wavpack_only}" = "1" ]]; then
-	for i in "${!lst_audio_src[@]}"; do
-		if [[ "${lst_audio_src[i]##*.}" != "wav" ]]; then
-				unset "lst_audio_src[$i]"
-		fi
-	done
-fi
-# Keep only Monkey's Audio if arg --ape_only
-if [[ "${ape_only}" = "1" ]]; then
-	for i in "${!lst_audio_src[@]}"; do
-		if [[ "${lst_audio_src[i]##*.}" != "ape" ]]; then
-				unset "lst_audio_src[$i]"
-		fi
-	done
-fi
-# Keep only ALAC codec among m4a files
-for i in "${!lst_audio_src[@]}"; do
-	# Keep only ALAC codec among m4a files
-	if [[ "${lst_audio_src[i]##*.}" = "m4a" ]]; then
-		codec_test=$(ffprobe -v error -select_streams a:0 \
-			-show_entries stream=codec_name -of csv=s=x:p=0 "${lst_audio_src[i]%.*}.m4a"  )
-		if [[ "$codec_test" != "alac" ]]; then
-			unset "lst_audio_src[$i]"
-		fi
+	# Keep only ALAC if arg --alac_only
+	if [[ "${alac_only}" = "1" ]]; then
+		for i in "${!lst_audio_src[@]}"; do
+			if [[ "${lst_audio_src[i]##*.}" != "m4a" ]]; then
+					unset "lst_audio_src[$i]"
+			fi
+		done
 	fi
-done
+	# Keep only FLAC if arg --flac_only
+	if [[ "${flac_only}" = "1" ]]; then
+		for i in "${!lst_audio_src[@]}"; do
+			if [[ "${lst_audio_src[i]##*.}" != "flac" ]]; then
+					unset "lst_audio_src[$i]"
+			fi
+		done
+	fi
+	# Keep only WAV if arg --wav_only
+	if [[ "${wavpack_only}" = "1" ]]; then
+		for i in "${!lst_audio_src[@]}"; do
+			if [[ "${lst_audio_src[i]##*.}" != "wav" ]]; then
+					unset "lst_audio_src[$i]"
+			fi
+		done
+	fi
+	# Keep only Monkey's Audio if arg --ape_only
+	if [[ "${ape_only}" = "1" ]]; then
+		for i in "${!lst_audio_src[@]}"; do
+			if [[ "${lst_audio_src[i]##*.}" != "ape" ]]; then
+					unset "lst_audio_src[$i]"
+			fi
+		done
+	fi
+	# Keep only ALAC codec among m4a files
+	for i in "${!lst_audio_src[@]}"; do
+		# Keep only ALAC codec among m4a files
+		if [[ "${lst_audio_src[i]##*.}" = "m4a" ]]; then
+			codec_test=$(ffprobe -v error -select_streams a:0 \
+				-show_entries stream=codec_name -of csv=s=x:p=0 "${lst_audio_src[i]%.*}.m4a"  )
+			if [[ "$codec_test" != "alac" ]]; then
+				unset "lst_audio_src[$i]"
+			fi
+		fi
+	done
+fi
+
 # Keep only 16 bits source if arg --16bits_only
 if [[ "${bits16_only}" = "1" ]]; then
 	for i in "${!lst_audio_src[@]}"; do
@@ -83,18 +89,23 @@ local test_counter
 
 test_counter="0"
 
-# Decode
+# Test
 for file in "${lst_audio_src[@]}"; do
 	(
-	# FLAC - Verify integrity
-	if [[ "${file##*.}" = "flac" ]]; then
-		flac $flac_test_arg "$file" 2>"${cache_dir}/${file##*/}.decode_error.log"
-	# APE - Verify integrity
-	elif [[ "${file##*.}" = "ape" ]]; then
-		mac "$file" -v 2>"${cache_dir}/${file##*/}.decode_error.log"
-	# ALAC, WAV - Verify integrity
-	elif [[ "${file##*.}" = "m4a" ]] || [[ "${file##*.}" = "wav" ]]; then
-		ffmpeg -v error -i "$file" -max_muxing_queue_size 9999 -f null - 2>"${cache_dir}/${file##*/}.decode_error.log"
+	# WAVPACK - Verify integrity
+	if [[ "$re_wavpack" = "1" ]] && [[ "${file##*.}" = "wv" ]]; then
+		wvunpack $wavpack_test_arg "$file" 2>"${cache_dir}/${file##*/}.decode_error.log"
+	else
+		# FLAC - Verify integrity
+		if [[ "${file##*.}" = "flac" ]]; then
+			flac $flac_test_arg "$file" 2>"${cache_dir}/${file##*/}.decode_error.log"
+		# APE - Verify integrity
+		elif [[ "${file##*.}" = "ape" ]]; then
+			mac "$file" -v 2>"${cache_dir}/${file##*/}.decode_error.log"
+		# ALAC, WAV - Verify integrity
+		elif [[ "${file##*.}" = "m4a" ]] || [[ "${file##*.}" = "wav" ]]; then
+			ffmpeg -v error -i "$file" -max_muxing_queue_size 9999 -f null - 2>"${cache_dir}/${file##*/}.decode_error.log"
+		fi
 	fi
 	) &
 	if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
@@ -116,7 +127,6 @@ wait
 
 # Test if error generated
 for file in "${lst_audio_src[@]}"; do
-
 	# FLAC - Special fix loop
 	if [[ "${file##*.}" = "flac" ]]; then
 		# Error log test & populate file in arrays
@@ -170,74 +180,77 @@ local decode_counter
 
 decode_counter="0"
 
-# FLAC - Decode
-for file in "${lst_audio_src_pass[@]}"; do
-	if [[ "${file##*.}" = "flac" ]]; then
-		(
-		flac $flac_decode_arg "$file"
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
-			wait -n
-		fi
+# WAVPACK - Verify integrity
+if [[ "$re_wavpack" != "1" ]]; then
+	# FLAC - Decode
+	for file in "${lst_audio_src_pass[@]}"; do
+		if [[ "${file##*.}" = "flac" ]]; then
+			(
+			flac $flac_decode_arg "$file"
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
+				wait -n
+			fi
 
-		# Progress
-		if ! [[ "$verbose" = "1" ]]; then
-			decode_counter=$((decode_counter+1))
-			if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
-				echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source file is being decoded"\\r
-			else
-				echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source files are being decoded"\\r
+			# Progress
+			if ! [[ "$verbose" = "1" ]]; then
+				decode_counter=$((decode_counter+1))
+				if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
+					echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source file is being decoded"\\r
+				else
+					echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source files are being decoded"\\r
+				fi
 			fi
 		fi
-	fi
-done
-wait
+	done
+	wait
 
-# APE - Decode
-for file in "${lst_audio_src_pass[@]}"; do
-	if [[ "${file##*.}" = "ape" ]]; then
-		(
-		mac "$file" "${file%.*}.wav" -d &>/dev/null
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
-			wait -n
-		fi
+	# APE - Decode
+	for file in "${lst_audio_src_pass[@]}"; do
+		if [[ "${file##*.}" = "ape" ]]; then
+			(
+			mac "$file" "${file%.*}.wav" -d &>/dev/null
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
+				wait -n
+			fi
 
-		# Progress
-		if ! [[ "$verbose" = "1" ]]; then
-			decode_counter=$((decode_counter+1))
-			if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
-				echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source file decoded"\\r
-			else
-				echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source files decoded"\\r
+			# Progress
+			if ! [[ "$verbose" = "1" ]]; then
+				decode_counter=$((decode_counter+1))
+				if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
+					echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source file decoded"\\r
+				else
+					echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source files decoded"\\r
+				fi
 			fi
 		fi
-	fi
-done
-wait
+	done
+	wait
 
-# ALAC - Decode
-for file in "${lst_audio_src_pass[@]}"; do
-	if [[ "${file##*.}" = "m4a" ]]; then
-		(
-		ffmpeg $ffmpeg_log_lvl -y -i "$file" "${file%.*}.wav"
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
-			wait -n
-		fi
+	# ALAC - Decode
+	for file in "${lst_audio_src_pass[@]}"; do
+		if [[ "${file##*.}" = "m4a" ]]; then
+			(
+			ffmpeg $ffmpeg_log_lvl -y -i "$file" "${file%.*}.wav"
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nproc ]]; then
+				wait -n
+			fi
 
-		# Progress
-		if ! [[ "$verbose" = "1" ]]; then
-			decode_counter=$((decode_counter+1))
-			if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
-				echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source file decoded"\\r
-			else
-				echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source files decoded"\\r
+			# Progress
+			if ! [[ "$verbose" = "1" ]]; then
+				decode_counter=$((decode_counter+1))
+				if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
+					echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source file decoded"\\r
+				else
+					echo -ne "${decode_counter}/${#lst_audio_src_pass[@]} source files decoded"\\r
+				fi
 			fi
 		fi
-	fi
-done
-wait
+	done
+	wait
+fi
 
 # Progress end
 if ! [[ "$verbose" = "1" ]]; then
@@ -249,10 +262,13 @@ if ! [[ "$verbose" = "1" ]]; then
 	fi
 fi
 
-# Ape target ape array
+# WAVPACK target array
 for file in "${lst_audio_src_pass[@]}"; do
-	# Array of ape target
-	lst_audio_wav_decoded+=( "${file%.*}.wav" )
+	if [[ "$re_wavpack" = "1" ]]; then
+		lst_audio_wav_decoded+=( "${file%.*}.wv" )
+	else
+		lst_audio_wav_decoded+=( "${file%.*}.wav" )
+	fi
 done
 }
 # Convert tag to apev2
@@ -764,17 +780,19 @@ Usage:
 2wavpack [options]
 
 Options:
+  --16bits_only           Compress only 16bits source.
+  --re_wavpack            Recompress WAVPACK source.
   --alac_only             Compress only ALAC source.
   --ape_only              Compress only Monkey's Audio source.
   --flac_only             Compress only FLAC source.
   --wav_only              Compress only WAV source.
-  --16bits_only           Compress only 16bits source.
   -v, --verbose           More verbose, for debug.
 
 Supported source files:
   * ALAC as .m4a
   * FLAC as .flac
   * Monkey's Audio as .ape
+  * WAVPACK as .wv
   * WAV as .wav
 EOF
 }
@@ -797,6 +815,7 @@ flac_decode_arg="--totally-silent -f -d"
 # WAVPACK
 wavpack_version=$(wavpack --version | head -1)
 wavpack_compress_arg="-hhx6"
+wavpack_test_arg="-q -v"
 # Tag whitelist according with:
 # https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
 # Ommit: EncodedBy, EncoderSettings = special case for rewrite this
@@ -890,6 +909,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	"--16bits_only")
 		bits16_only="1"
+	;;
+	"--re_wavpack")
+		re_wavpack="1"
 	;;
 	"--alac_only")
 		alac_only="1"
