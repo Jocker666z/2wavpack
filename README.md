@@ -25,4 +25,4 @@ Options:
   -v, --verbose           More verbose, for debug.
 ```
 
-Default compression is `-hhx6`, with argument --best_compress use `-hhx6`.
+Default compression is `-hhx2`, with argument --best_compress use `-hhx6`.
