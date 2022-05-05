@@ -839,7 +839,7 @@ flac_fix_arg="--totally-silent -f --verify --decode-through-errors"
 flac_decode_arg="--totally-silent -f -d"
 # WAVPACK
 wavpack_version=$(wavpack --version | head -1)
-wavpack_compress_arg="-hhx6"
+wavpack_compress_arg="-hhx2"
 wavpack_test_arg="-q -v"
 # Tag whitelist according with:
 # https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
