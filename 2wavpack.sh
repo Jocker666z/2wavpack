@@ -173,6 +173,13 @@ if ! [[ "$verbose" = "1" ]]; then
 		fi
 	fi
 fi
+
+# All source files size record
+total_source_files_size=$(calc_files_size "${lst_audio_src_pass[@]}")
+# Individual source file size record
+for file in "${lst_audio_src_pass[@]}"; do
+	file_source_files_size+=( "$(get_files_size_bytes "${file}")" )
+done
 }
 # Decode source
 decode_source() {
@@ -666,11 +673,9 @@ done
 summary_of_processing() {
 local diff_in_s
 local time_formated
-local file_source_files_size
 local file_target_files_size
 local file_diff_percentage
 local file_path_truncate
-local total_source_files_size
 local total_target_files_size
 local total_diff_size
 local total_diff_percentage
@@ -682,15 +687,15 @@ if (( "${#lst_audio_src[@]}" )); then
 	# All files size stats
 	for i in "${!lst_audio_src_pass[@]}"; do
 		# Make statistics of indidual processed files
-		file_source_files_size=$(get_files_size_bytes "${lst_audio_src_pass[i]}")
+		#file_source_files_size=$(get_files_size_bytes "${lst_audio_src_pass[i]}")
 		file_target_files_size=$(get_files_size_bytes "${lst_audio_wv_compressed[i]}")
-		file_diff_percentage=$(calc_percent "$file_source_files_size" "$file_target_files_size")
+		file_diff_percentage=$(calc_percent "${file_source_files_size[i]}" "$file_target_files_size")
 		filesPassSizeReduction+=( "$file_diff_percentage" )
 		file_path_truncate=$(echo ${lst_audio_wv_compressed[i]} | rev | cut -d'/' -f-3 | rev)
 		filesPassLabel+=( "(${filesPassSizeReduction[i]}%) ~ .${file_path_truncate}" )
 	done
 	# Total files size stats
-	total_source_files_size=$(calc_files_size "${lst_audio_src_pass[@]}")
+	# total_source_files_size=$(calc_files_size "${lst_audio_src_pass[@]}")
 	total_target_files_size=$(calc_files_size "${lst_audio_wv_compressed[@]}")
 	total_diff_size=$(bc <<< "scale=0; ($total_target_files_size - $total_source_files_size)" \
 						| sed -r 's/^(-?)\./\10./')
