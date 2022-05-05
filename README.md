@@ -16,10 +16,13 @@ Processes all compatible files in the current directory and the three subdirecto
 ```
 Options:
   --16bits_only           Compress only 16bits source.
-  --re_wavpack            Force recompress WAVPACK source.
+  --best_compress         Use best WAVPACK compression (-hhx6).
+  --re_wavpack            Recompress WAVPACK source.
   --alac_only             Compress only ALAC source.
   --ape_only              Compress only Monkey's Audio source.
   --flac_only             Compress only FLAC source.
   --wav_only              Compress only WAV source.
   -v, --verbose           More verbose, for debug.
 ```
+
+Default compression is `-hhx6`, with argument --best_compress use `-hhx6`.

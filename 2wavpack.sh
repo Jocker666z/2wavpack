@@ -806,6 +806,7 @@ Usage:
 
 Options:
   --16bits_only           Compress only 16bits source.
+  --best_compress         Use best WAVPACK compression (-hhx6).
   --re_wavpack            Recompress WAVPACK source.
   --alac_only             Compress only ALAC source.
   --ape_only              Compress only Monkey's Audio source.
@@ -934,6 +935,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	"--16bits_only")
 		bits16_only="1"
+	;;
+	"--best_compress")
+		wavpack_compress_arg="-hhx6"
 	;;
 	"--re_wavpack")
 		re_wavpack="1"
