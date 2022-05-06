@@ -474,6 +474,7 @@ for file in "${lst_audio_wv_compressed[@]}"; do
 		# Waste fix
 		source_tag[$i]=$(echo ${source_tag[$i]} | sed "s/\bdate=\b/Year=/g")
 		source_tag[$i]="${source_tag[$i]//PUBLISHER=/Label=}"
+		source_tag[$i]="${source_tag[$i]//Album Artist=Artist: /Album Artist=}"
 	done
 
 	# Whitelist parsing
