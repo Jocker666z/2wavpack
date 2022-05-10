@@ -144,7 +144,7 @@ for file in "${lst_audio_src[@]}"; do
 
 	# APE - Special not support stderr
 	if [[ "${file##*.}" = "ape" ]]; then
-		ape_test=$(cat "${cache_dir}/${file##*/}.decode_error.log" | tail -1)
+		ape_test=$(< "${cache_dir}/${file##*/}.decode_error.log" tail -1)
 		if [[ "$ape_test" = "Success..." ]]; then
 			rm "${cache_dir}/${file##*/}.decode_error.log"  2>/dev/null
 		fi
