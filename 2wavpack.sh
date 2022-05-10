@@ -43,7 +43,7 @@ else
 		done
 	fi
 	# Keep only WAV if arg --wav_only
-	if [[ "${wavpack_only}" = "1" ]]; then
+	if [[ "${wav_only}" = "1" ]]; then
 		for i in "${!lst_audio_src[@]}"; do
 			if [[ "${lst_audio_src[i]##*.}" != "wav" ]]; then
 					unset "lst_audio_src[$i]"
@@ -692,7 +692,6 @@ if (( "${#lst_audio_src[@]}" )); then
 	# All files size stats
 	for i in "${!lst_audio_src_pass[@]}"; do
 		# Make statistics of indidual processed files
-		#file_source_files_size=$(get_files_size_bytes "${lst_audio_src_pass[i]}")
 		file_target_files_size=$(get_files_size_bytes "${lst_audio_wv_compressed[i]}")
 		file_diff_percentage=$(calc_percent "${file_source_files_size[i]}" "$file_target_files_size")
 		filesPassSizeReduction+=( "$file_diff_percentage" )
@@ -700,7 +699,6 @@ if (( "${#lst_audio_src[@]}" )); then
 		filesPassLabel+=( "(${filesPassSizeReduction[i]}%) ~ .${file_path_truncate}" )
 	done
 	# Total files size stats
-	# total_source_files_size=$(calc_files_size "${lst_audio_src_pass[@]}")
 	total_target_files_size=$(calc_files_size "${lst_audio_wv_compressed[@]}")
 	total_diff_size=$(bc <<< "scale=0; ($total_target_files_size - $total_source_files_size)" \
 						| sed -r 's/^(-?)\./\10./')
