@@ -264,12 +264,14 @@ if [[ "$re_wavpack" != "1" ]]; then
 fi
 
 # Progress end
-if ! [[ "$verbose" = "1" ]]; then
-	tput hpa 0; tput el
-	if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
-		echo "${decode_counter} source file decoded"
-	else
-		echo "${decode_counter} source files decoded"
+if [[ "$verbose" != "1" ]];then
+	if [[ "$re_wavpack" != "1" ]];then
+		tput hpa 0; tput el
+		if [[ "${#lst_audio_src_pass[@]}" = "1" ]]; then
+			echo "${decode_counter} source file decoded"
+		else
+			echo "${decode_counter} source files decoded"
+		fi
 	fi
 fi
 
@@ -844,7 +846,7 @@ flac_fix_arg="--totally-silent -f --verify --decode-through-errors"
 flac_decode_arg="--totally-silent -f -d"
 # WAVPACK
 wavpack_version=$(wavpack --version | head -1)
-wavpack_compress_arg="-hhx2"
+wavpack_compress_arg="-hhx4"
 wavpack_test_arg="-q -v"
 # Tag whitelist according with:
 # https://picard-docs.musicbrainz.org/en/appendices/tag_mapping.html
