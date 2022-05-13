@@ -693,14 +693,16 @@ if (( "${#lst_audio_src[@]}" )); then
 	time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%60))s"
 
 	# All files pass size stats & label
-	for i in "${!lst_audio_src_pass[@]}"; do
-		# Make statistics of indidual processed files
-		file_target_files_size=$(get_files_size_bytes "${lst_audio_wv_compressed[i]}")
-		file_diff_percentage=$(calc_percent "${file_source_files_size[i]}" "$file_target_files_size")
-		filesPassSizeReduction+=( "$file_diff_percentage" )
-		file_path_truncate=$(echo ${lst_audio_wv_compressed[i]} | rev | cut -d'/' -f-3 | rev)
-		filesPassLabel+=( "(${filesPassSizeReduction[i]}%) ~ .${file_path_truncate}" )
-	done
+	if (( "${#lst_audio_src_pass[@]}" )); then
+		for i in "${!lst_audio_src_pass[@]}"; do
+			# Make statistics of indidual processed files
+			file_target_files_size=$(get_files_size_bytes "${lst_audio_wv_compressed[i]}")
+			file_diff_percentage=$(calc_percent "${file_source_files_size[i]}" "$file_target_files_size")
+			filesPassSizeReduction+=( "$file_diff_percentage" )
+			file_path_truncate=$(echo ${lst_audio_wv_compressed[i]} | rev | cut -d'/' -f-3 | rev)
+			filesPassLabel+=( "(${filesPassSizeReduction[i]}%) ~ .${file_path_truncate}" )
+		done
+	fi
 	# All files rejected size label
 	if (( "${#lst_audio_src_rejected[@]}" )); then
 		for i in "${!lst_audio_src_rejected[@]}"; do
@@ -714,14 +716,15 @@ if (( "${#lst_audio_src[@]}" )); then
 						| sed -r 's/^(-?)\./\10./')
 	total_diff_percentage=$(calc_percent "$total_source_files_size" "$total_target_files_size")
 
-	echo
 	# Print list of files stats
-	echo "File(s) created:"
-	display_list_truncate "${filesPassLabel[@]}"
+	if (( "${#lst_audio_src_pass[@]}" )); then
+		echo
+		echo "File(s) created:"
+		display_list_truncate "${filesPassLabel[@]}"
+	fi
 	# Print list of files reject
 	if (( "${#lst_audio_src_rejected[@]}" )); then
 		echo
-		# Print list of files reject
 		echo "File(s) in error:"
 		display_list_truncate "${filesRejectedLabel[@]}"
 	fi
