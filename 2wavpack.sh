@@ -692,7 +692,7 @@ if (( "${#lst_audio_src[@]}" )); then
 	diff_in_s=$(( stop_process_time - start_process_time ))
 	time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%60))s"
 
-	# All files size stats
+	# All files pass size stats & label
 	for i in "${!lst_audio_src_pass[@]}"; do
 		# Make statistics of indidual processed files
 		file_target_files_size=$(get_files_size_bytes "${lst_audio_wv_compressed[i]}")
@@ -701,6 +701,13 @@ if (( "${#lst_audio_src[@]}" )); then
 		file_path_truncate=$(echo ${lst_audio_wv_compressed[i]} | rev | cut -d'/' -f-3 | rev)
 		filesPassLabel+=( "(${filesPassSizeReduction[i]}%) ~ .${file_path_truncate}" )
 	done
+	# All files rejected size label
+	if (( "${#lst_audio_src_rejected[@]}" )); then
+		for i in "${!lst_audio_src_rejected[@]}"; do
+			file_path_truncate=$(echo ${lst_audio_src_rejected[i]} | rev | cut -d'/' -f-3 | rev)
+			filesRejectedLabel+=( ".${file_path_truncate}" )
+		done
+	fi
 	# Total files size stats
 	total_target_files_size=$(calc_files_size "${lst_audio_wv_compressed[@]}")
 	total_diff_size=$(bc <<< "scale=0; ($total_target_files_size - $total_source_files_size)" \
@@ -716,7 +723,7 @@ if (( "${#lst_audio_src[@]}" )); then
 		echo
 		# Print list of files reject
 		echo "File(s) in error:"
-		display_list_truncate "${lst_audio_src_rejected[@]}"
+		display_list_truncate "${filesRejectedLabel[@]}"
 	fi
 	# Print all files stats
 	echo
