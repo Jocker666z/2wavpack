@@ -133,7 +133,7 @@ wait
 for file in "${lst_audio_src[@]}"; do
 	# FLAC - Special fix loop
 	if [[ "${file##*.}" = "flac" ]]; then
-		# Error log test & populate file in arrays
+		# Error log test
 		if [ -s "${cache_dir}/${file##*/}.decode_error.log" ]; then
 			# Try to fix file
 			flac $flac_fix_arg "$file"
