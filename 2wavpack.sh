@@ -809,7 +809,7 @@ command_display "2ape"
 # Usage print
 usage() {
 cat <<- EOF
-2wavpack - GNU GPL-2.0 Copyright - <https://github.com/Jocker666z/2ape>
+2wavpack - GNU GPL-2.0 Copyright - <https://github.com/Jocker666z/2wavpack>
 Various lossless to WAVPACK while keeping the tags.
 
 Processes all compatible files in the current directory
