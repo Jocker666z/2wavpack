@@ -433,7 +433,6 @@ for file in "${lst_audio_wv_compressed[@]}"; do
 		source_tag[$i]="${source_tag[$i]//DISCNUMBER=/Disc=}"
 		source_tag[$i]="${source_tag[$i]//DISCSUBTITLE=/DiscSubtitle=}"
 		source_tag[$i]="${source_tag[$i]//DJMIXER=/DJMixer=}"
-		source_tag[$i]="${source_tag[$i]//ENCODEDBY=/EncodedBy=}"
 		source_tag[$i]="${source_tag[$i]//ENGINEER=/Engineer=}"
 		source_tag[$i]="${source_tag[$i]//GENRE=/Genre=}"
 		source_tag[$i]="${source_tag[$i]//GROUPING=/Grouping=}"
@@ -534,7 +533,7 @@ local compress_counter
 compress_counter="0"
 
 for file in "${lst_audio_wav_decoded[@]}"; do
-	# Compress ape
+	# Compress WAVPACK
 	(
 	if [[ "$verbose" = "1" ]]; then
 		wavpack -y "$wavpack_compress_arg" "$file"
