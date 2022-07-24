@@ -442,7 +442,7 @@ for file in "${lst_audio_wv_compressed[@]}"; do
 		source_tag[$i]="${source_tag[$i]//LYRICS=/Lyrics=}"
 		source_tag[$i]="${source_tag[$i]//MEDIA=/Media=}"
 		source_tag[$i]="${source_tag[$i]//MIXER=/Mixer=}"
-		source_tag[$i]="${source_tag[$i]//MIXER=/Mood=}"
+		source_tag[$i]="${source_tag[$i]//MOOD=/Mood=}"
 		source_tag[$i]="${source_tag[$i]//ORGANIZATION=/Label=}"
 		source_tag[$i]="${source_tag[$i]//PERFORMER=/Performer=}"
 		source_tag[$i]="${source_tag[$i]//PRODUCER=/Producer=}"
